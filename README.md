@@ -122,3 +122,189 @@ Although it is slightly slower (by ~0.5 ns), it is more robust, cheaper, and wid
 | 2         | ![Iteration 2](https://github.com/user-attachments/assets/d0b93334-8268-495a-9fc5-7e417f4c32c8) | Changed debounce circuitry using RC, same values as SPST | Improved simplicity and changed labeling for clarity |
 | 3         | ![Iteration 3](https://github.com/user-attachments/assets/4b190c3b-2768-4b10-86b7-97b0496025b3) | Added XOR gate for isValid logic and | - |
 | 4         | ![Iteration 4](https://github.com/user-attachments/assets/55b7cec0-5aff-421c-835e-e608aabb2051) | 1. Added diode for voltage clamping (Process is elaborated below) 2. Changed labeling for clarity| | - |
+
+# Single Analog Input (Potentiometer): 3 Pins  
+
+## What is a Potentiometer?  
+In essence, a potentiometer is a variable resistor. When the knob is rotated, the resistance changes, thus the output voltage also changes. For ESP-32, the common value for potentiometers is 10k Ohm. That will be used for this project. 
+
+### Problems  
+In reality, the output may jump slightly due to mechanical contacts (the wiper) or electrical noise. This results in signal fluctuations or “jitter,” especially in digital systems reading analog values, such as the ADC in a microcontroller.  
+
+---
+
+## Types of Filtering Circuitry  
+There are many types of filtering circuitry:  
+- Low-Pass Filter (LPF)  
+- High-Pass Filter (HPF)  
+- Band-Pass Filter (BPF)  
+- Band-Stop Filter (BSF) or Notch Filter  
+
+To properly determine the type of filtering circuitry, we must see the source of the problem we are trying to solve.  
+
+- Signal fluctuations or “jitter” due to mechanical contacts or noise are **high-frequency spikes or rapid changes**.  
+- Meanwhile, the potentiometer is supposed to **gradually change voltage** (the intended frequency here is low).  
+
+Thus, the filter needs to filter out high-frequency noise and only let low-frequency signals pass through → **Low-Pass Filter (LPF).**  
+
+Since the frequency of the voltage change comes from human action (turning the knob), as long as the cutoff frequency is above the maximum frequency of human knob turning, it should be fine.  
+
+---
+
+## Low-Pass Filter Cutoff Frequency  
+
+The cutoff frequency of a low-pass filter is given by:  
+
+$$
+f_c = \frac{1}{2 \pi R C}
+$$  
+
+Where:  
+- \( f_c \): Cutoff frequency (Hz)  
+- \( R \): Resistance (Ohms, Ω)  
+- \( C \): Capacitance (Farads, F)  
+
+From this formula, both the cutoff frequency and the capacitor value must be determined.  
+
+---
+
+## Cutoff Frequency Consideration  
+According to *ValdPerformance (2025)*, the maximum frequency from a human-adjusted knob is 20 Hz.  
+However, since 20 adjustments per second (20 Hz) is too high for a remote control, **10 Hz will be used** as it is closer to the maximum realistic speed for this intended use.  
+
+---
+
+## Determining Resistance Seen by the Capacitor  
+In this case, I searched on Google and found that for ESP32s, the common convention is to use **10 kΩ potentiometers** for ADCs (to be confirmed).  
+
+When calculating the cutoff frequency, the resistance used is the **worst-case resistance / largest R seen by the capacitor**.  
+Since the capacitor is connected to the wiper, the resistance “seen” is basically \( R_{12} \parallel R_{23} \).  
+
+Thus, the largest \( R \) would be when the wiper is at the middle:  
+
+$$
+R = \frac{R_{\text{pot}}}{2} = \frac{10kΩ}{2} = 5kΩ
+$$  
+
+---
+
+## Capacitance Value  
+Using the formula above, the capacitance can be determined:  
+
+$$
+C = \frac{1}{2 \pi R f_c}
+$$
+
+Substituting \( R = 5kΩ \) and \( f_c = 10Hz \):  
+
+$$
+C = \frac{1}{2 \pi (5000)(10)} \approx 3.18 \, \mu F
+$$
+
+---
+
+## Final Parameters  
+
+| Parameter       | Value     | Notes                                      |
+|-----------------|-----------|--------------------------------------------|
+| Resistance (R)  | 5 kΩ      | Worst-case wiper position (midpoint)       |
+| Cutoff freq (f) | 10 Hz     | Based on expected knob turning speed       |
+| Capacitance (C) | 3.18 μF   | Calculated using LPF cutoff frequency      |
+
+## Iterations
+| Iteration | Circuit Image | Components Changed | Observations / Issues |
+|-----------|---------------|------------------|----------------------|
+| 1         | ![Iteration 1](https://github.com/user-attachments/assets/42be2d1c-e50d-482f-84bb-fa20674d96f2) | Initial setup of potentiometer | Forgot to connect pin 3 to GND, no voltage clamp yet |
+| 2         | ![Iteration 2](https://github.com/user-attachments/assets/3c9894a6-22f9-43a8-b03b-bcce31f4780e) | Added diode for voltage clamping | - |
+
+# Single Digital Output (LED): 2 Pins  
+
+## Specifications of the resistor
+To avoid damaging the LED, a maximum current needs to be set. The convention for maximum current is **0.02 A (20 mA)** (RoboticsBack-End, n.d.).  
+
+LEDs have a **forward voltage (voltage drop)**, which varies depending on color but can generally be approximated as **2 V**.  
+
+The resistor can be calculated as:  
+
+$$
+R = \frac{V_{source} - V_{forward}}{I} = \frac{5V - 2V}{0.02A} = 150 \, \Omega
+$$  
+
+This is the minimum value; a higher resistance is also acceptable since it will keep the current below 20 mA.  
+Because 150 Ω resistors are uncommon, **220 Ω** will be used.  
+
+---
+
+## Digital Outputs (LED) Driven by MOSFETs (via 5V), MOSFET Gate Threshold = 3.3V  
+
+### What is a MOSFET?  
+
+By definition, a MOSFET is a high-power, fast switch (Electronics-Tutorial, n.d.).  
+
+There are two types of MOSFETs:  
+- **NMOS** – Activates when V<sub>gate</sub> is above V<sub>threshold</sub>.  
+- **PMOS** – Activates when V<sub>gate</sub> is below V<sub>threshold</sub>.  
+
+Since the ESP32 uses 3.3 V logic to activate the gate, an **NMOS** will be used.  
+
+In short, an NMOS is just an MCU-controllable switch. When the GPIO outputs 3.3 V (above threshold), current will flow from **drain to source**.  
+
+---
+
+# NMOS Comparison: 2N7002 vs AO3400  
+
+| Feature                  | 2N7002                            | AO3400                             |
+|---------------------------|-----------------------------------|------------------------------------|
+| Type                     | N-channel MOSFET                  | N-channel MOSFET                   |
+| V<sub>DS</sub> (Drain-Source Voltage) | 60 V max                        | 30 V max                           |
+| I<sub>D</sub> (Continuous Drain Current) | ~200 mA (at 25 °C)              | ~5.8 A (at 25 °C)                  |
+| R<sub>DS(on)</sub> @ V<sub>GS</sub>=2.5V | ~7.5 Ω                          | ~35 mΩ                             |
+| R<sub>DS(on)</sub> @ V<sub>GS</sub>=4.5V | ~2.0 Ω                          | ~22 mΩ                             |
+| Gate Threshold V<sub>GS(th)</sub> | 0.8–3.0 V                        | 1.0–3.0 V                          |
+| Total Gate Charge (Qg)   | ~2.5 nC                           | ~9–12 nC                           |
+| Package                  | SOT-23                            | SOT-23                             |
+| Use Case                 | Logic-level signals, light loads  | Power switching, higher current     |
+| Cost & availability      | Very cheap, widely available      | Slightly more expensive, widely used |
+
+---
+
+Both of these NMOS devices have a threshold of approximately **1–2.5 V**, making it easy for the 3.3 V logic from the ESP32 to surpass the threshold and activate the gate. However, since the **2N7002** is much cheaper and widely available, it is the preferred choice for this application.  
+
+## Iterations
+| Iteration | Circuit Image | Components Changed | Observations / Issues |
+|-----------|---------------|------------------|----------------------|
+| 1         | ![Iteration 1](https://github.com/user-attachments/assets/68dc26d4-2431-4db7-91cb-d001538a9403) | Initial setup of the LED, 100 ohm resistor (wrong values), without voltage clamp, and no MOSFAT|
+| 2         | ![Iteration 2](https://github.com/user-attachments/assets/7ed1bc35-13eb-4cd2-9b70-924e584fd5df) | Added Mosfat, changed resistor values (re-calculated) | There is still potential for floating values, because no pull down resistor, resistor value is still at minimum, possibility of voltage-inrush (need voltage clamp)  |
+| 3         | ![Iteration 3](https://github.com/user-attachments/assets/ef186cb6-3199-484f-aa4e-be2780487e47) | Changed resistor value to 220 (standard value) and so that its not at a minimum, added voltage clamp through diode | - |
+
+# 3.3 Volt Buck Converter  
+
+**Source:** [IC Components – AMS1117-3.3 Features, Applications, and Wiring Guide](https://www.ic-components.com/blog/ams1117-3.3-features,applications,and-wiring-guide-for-stable-voltage-regulation.jsp)  
+
+---
+
+## What is a Buck Converter?  
+An **AMS1117-3.3** is a voltage regulator. It works by rapidly switching the input DC voltage on and off.  
+
+---
+
+## Main Problems / Issues (Analog Devices, 2002)  
+While switching on and off is effective for regulating voltage, it introduces **high-frequency noise**.  
+
+Additionally, sudden load changes (e.g., turning on an LED) require the converter to supply extra current to meet demand. Without proper filtering, this can cause **voltage dips** or **instability**.  
+
+---
+
+## Solution: Capacitor for Wide-Band Filtering  
+
+For the AMS1117-3.3V buck converter:  
+- Use **0.1 μF** capacitor for high-frequency filtering.  
+- Use **10 μF** capacitor for low-frequency filtering.  
+- Together, these form a **wide-band filter**.  
+
+Since the capacitors are connected in parallel, the order (left to right) does not matter, as long as there is a **pair of 10 μF and 0.1 μF capacitors** on each side.
+
+## Iterations
+| Iteration | Circuit Image | Components Changed | Observations / Issues |
+|-----------|---------------|------------------|----------------------|
+| 1         | ![Iteration 1](https://github.com/user-attachments/assets/ac92b45d-dd68-4f3b-a961-d818c2171902) | Setup of the 3.3V Buck Converter | Most of the iterations only differed in the capacitor combinations, which was done before I had understood the true purpose of the capacitors.|
