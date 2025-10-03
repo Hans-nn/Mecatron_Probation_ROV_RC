@@ -9,6 +9,7 @@ A regular mechanical switch that can be operated using a button.
 
 - **SPST** → Single Pole, Single Throw; can only control the current of one circuit (i.e., either on or off).  
 - When pressed/triggered, the metal contacts inside come in contact to complete the circuit, thus “turning it on.”
+<img width="318" height="286" alt="image" src="https://github.com/user-attachments/assets/bfb261b4-7054-4183-aa6e-06971d3af78e" />
 
 **Source:** (GeeksforGeeks, 2025)
 
@@ -45,9 +46,8 @@ $$
 
 | Iteration | Circuit Image | Components Changed | Observations / Issues |
 |-----------|---------------|------------------|----------------------|
-| 1         | ![Iteration 1](https://github.com/user-attachments/assets/a4ef3a7a-dd8d-4733-85f6-2da897210a51) | Initial setup: SPST + RC debouncing (R=?, C=?) | Minor bouncing, ADC occasionally reads multiple triggers |
-| 2         | ![Iteration 2](https://user-images.githubusercontent.com/.../iteration2.png) | Increased C / Adjusted R | Bouncing reduced, response slightly slower |
-| 3         | ![Iteration 3](https://user-images.githubusercontent.com/.../iteration3.png) | Added series resistor / diode | ADC stable, minor overshoot on fast presses |
-| 4         | ![Iteration 4](https://user-images.githubusercontent.com/.../iteration4.png) | Final adjustments, optimized RC | ADC fully protected, clean signal |
+| 1         | ![Iteration 1](https://github.com/user-attachments/assets/a4ef3a7a-dd8d-4733-85f6-2da897210a51) | Initial setup: SPST + RC debouncing (R=100k Ohms, C=100 μF) | Wrong Capacitance Value, used wrong unit for T, grounded the switch instead  |
+| 2         | ![Iteration 2](https://github.com/user-attachments/assets/9dad318a-9044-4730-85f2-1df5f5f30fec) | Increased C / Adjusted R | Corrected circuitry and capacitance value |
+| 3         | ![Iteration 3](https://github.com/user-attachments/assets/ceaaa4bd-b82f-454f-b5ea-f80f0c548bd8) | 1. Added diode for voltage clamping (Process is elaborated below) 2. Changed labeling for clarity|
 
 
