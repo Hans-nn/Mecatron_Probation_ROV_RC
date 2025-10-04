@@ -419,6 +419,34 @@ From Datasheet
 
 Thus, VDD3P3, VDD3P3_CPU, VDDA, VDD3P3_RTC need to be all connected to 3.3V from AMS1117-3.3V LDO and GND. 
 
-** FINAL ESP 32 CONNECTIONS ** 
+**FINAL ESP 32 CONNECTIONS** 
+
 <img width="540" height="582" alt="image" src="https://github.com/user-attachments/assets/a3bf0885-6c15-448d-9a88-fe63231e3037" />
+
+
+## References
+
+Analog Devices. (2002, July 17). *Input and output noise in buck converters explained*. https://www.analog.com/en/resources/technical-articles/input-and-output-noise-in-buck-converters-explained.html?utm_source=chatgpt.com
+
+EE Power. (n.d.). *Pull-up and pull-down resistors | Resistor applications | Resistor guide*. https://eepower.com/resistor-guide/resistor-applications/pull-up-resistor-pull-down-resistor/#
+
+Electrical4U. (2021, July 11). *Clamping voltage: What is it? (vs breakdown & let through voltage)*. https://www.electrical4u.com/clamping-voltage/
+
+Electronics Tutorials. (n.d.). *The MOSFET*. https://www.electronics-tutorials.ws/transistor/tran_6.html
+
+GeeksforGeeks. (2025, July 23). *Electric switch*. https://www.geeksforgeeks.org/electrical-engineering/electric-switch/
+
+GeeksforGeeks. (2025, August 30). *Logic gates - definition, types, uses*. https://www.geeksforgeeks.org/digital-logic/logic-gates/
+
+Mackey, J. (2024, October 3). *How to implement switch debounce | Switch bounce explained*. Pico Technology. https://www.picotech.com/library/articles/blog/what-is-switch-bounce-how-to-implement-debounce
+
+Maxfield, M. (2020, March 19). *Ultimate guide to switch debounce (Part 5) – EEJournal*. EEJournal. https://www.eejournal.com/article/ultimate-guide-to-switch-debounce-part-5/
+
+Real Electronics. (2025). *Switch bounce: The mechanics of switch bounce, and what to do about it*. Real Electronics: Electrical and Computer Engineering Education. https://www.realdigital.org/doc/49c53dbf5b54b73f393d18a87f7c3fe0
+
+RoboticsBack-End. (n.d.). *Arduino LED - complete tutorial*. The Robotics Back-End. https://roboticsbackend.com/arduino-led-complete-tutorial/
+
+Toshiba. (n.d.). *What is a diode | Toshiba Electronic Devices & Storage Corporation | Asia-English*. Toshiba America Electronic Components. https://toshiba.semicon-storage.com/ap-en/semiconductor/knowledge/faq/diode/what-are-diodes.html
+
+ValdPerformance. (2025, February 6). *Sampling frequency: How much is enough?* VALD Performance. https://valdperformance.com/news/sampling-frequency-how-much-is-enough
 
