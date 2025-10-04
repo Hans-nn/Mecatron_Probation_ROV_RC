@@ -375,3 +375,50 @@ According to (Toshiba, n.d.), TVS diodes are commonly connected between the sign
 **Image of circuitry and concept of voltage clamping:**  
 <img width="731" height="260" alt="image" src="https://github.com/user-attachments/assets/26bed114-b04d-4731-93d2-1a6131debdb7" />
 Source: (Toshiba, n.d.)
+
+
+Connecting to ESP32-S3
+Based on datasheet: (https://www.espressif.com/sites/default/files/documentation/esp32-s3-wroom-1_wroom-1u_datasheet_en.pdf). Summarized by chatGPT.
+# Connecting to ESP32
+
+## 1. GPIOs you must avoid (boot strapping pins)
+- **GPIO 0, 2, 15** → decide boot mode. Pulling them wrong = ESP32 won’t boot.  
+- **GPIO 6–11** → connected to flash, don’t touch.  
+- **GPIO 34–39** → input-only (no output).  
+
+## 2. Good choices for general I/O
+
+### Digital Inputs / Buttons (SPST, SPDT)
+- Use GPIOs: `16, 17, 18, 19, 21, 22, 23, 25, 26, 27, 32, 33`
+
+### Analog Input (Potentiometer)
+- Use ADC-capable pins: `32, 33, 34, 35, 36, 39`  
+  *Note: GPIO 34–39 are input-only.*
+
+### Digital Output (LED via MOSFET)
+- Use PWM-capable pins: `18, 19, 21, 22, 23, 25, 26, 27, 32, 33`
+
+| Function               | Net Label       | ESP32 Pin | Notes                          |
+| ---------------------- | --------------- | --------- | ------------------------------ |
+| Single Button (SPST)   | SPST_DIGIN1     | GPIO18    | Pulled up, optional debounce   |
+| SPDT Throw A           | SPDT1_DIGIN2    | GPIO13    | Input to XOR                   |
+| SPDT Throw B           | SPDT2_DIGIN3    | GPIO17    | Input to XOR                   |
+| XOR Output (`isValid`) | IS_Valid_DIGIN4 | GPIO14    | Hardware-computed via XOR gate |
+| LED Output             | NMOS_DIGOUT1    | GPIO21    | Drives NMOS gate, ON/OFF only  |
+| Potentiometer ADC      | ADC_POT         | GPIO33    | Analog input                   |
+
+From Datasheet
+| Pin        | Type  | Domain / Notes                         |
+| ---------- | ----- | -------------------------------------- |
+| VDD3P3     | Input | Analog power domain                    |
+| VDD3P3_RTC | Input | RTC and part of digital power domains  |
+| VDD_SPI    | Input | Flash/PSRAM memory (backup power line) |
+| VDD3P3_CPU | Input | Digital power domain                   |
+| VDDA       | Input | Analog power domain (ADC reference)    |
+| GND        | –     | External ground connection             |
+
+Thus, VDD3P3, VDD3P3_CPU, VDDA, VDD3P3_RTC need to be all connected to 3.3V from AMS1117-3.3V LDO and GND. 
+
+** FINAL ESP 32 CONNECTIONS ** 
+<img width="540" height="582" alt="image" src="https://github.com/user-attachments/assets/a3bf0885-6c15-448d-9a88-fe63231e3037" />
+
