@@ -1,6 +1,35 @@
 # Mecatron_Probation_ROV_RC
 Made by Gregory Hans Nugraha.
 
+# Goals
+Create a schematic diagram for a PCB that will accept digital and analog inputs, and output digital signals (LED).
+
+## Instructions
+- All digital inputs are to be pulled to **3.3 V** via **100 kΩ** resistors.  
+- The schematic diagram must be **easy to read and understand**. Use of labels is expected.  
+- All calculations (if any) must be written clearly on the schematic diagram **and** in a separate document.  
+- Diagram must be drawn in **KiCad** and submitted as **PDF (plotted, not printed)**.
+
+## Components
+Since the hook-up for any category should be the same, only **one set of each** is required.  
+Assume each component is connected via a connector; for each element include both:  
+1. Component → connector (male) via wires  
+2. Connector → PCB (draw this connection on the diagram)
+
+- **Single Digital Input (SPST Switch or Button):** 2 pins  
+- **Dual Digital Inputs (SPDT Switch):** 3 pins  
+- **Single Analog Input (Potentiometer):** 3 pins  
+- **Single Digital Output (LED):** 2 pins
+
+## Extra Credit
+- Digital inputs include **debounce circuitry**.  
+- Analog inputs include **filtering circuitry**.  
+- All inputs: **maximum voltage clamped to Vcc**.  
+- Digital outputs (LED) are **driven by MOSFETs** (powered via 5 V); MOSFET gate threshold = **3.3 V**.  
+- Digital mutually-exclusive inputs (SPDT switch) should produce outputs **(Signal, isValid)**.
+- Given a 5 V supply, derive **3.3 V** on-board using a buck/linear regulator (**AMS1117-3.3**).  
+- This board requires proper decoupling for the AMS1117-3.3 — include suitable input/output capacitors on the schematic per the regulator recommendations.
+
 # Single Digital Input (SPST Switch or Button)
 
 ## What is an SPST Switch? 
@@ -297,7 +326,7 @@ Additionally, sudden load changes (e.g., turning on an LED) require the converte
 
 ## Solution: Capacitor for Wide-Band Filtering  
 
-For the AMS1117-3.3V buck converter:  
+For the AMS1117-3.3V LDO:  
 - Use **0.1 μF** capacitor for high-frequency filtering.  
 - Use **10 μF** capacitor for low-frequency filtering.  
 - Together, these form a **wide-band filter**.  
@@ -307,4 +336,42 @@ Since the capacitors are connected in parallel, the order (left to right) does n
 ## Iterations
 | Iteration | Circuit Image | Components Changed | Observations / Issues |
 |-----------|---------------|------------------|----------------------|
-| 1         | ![Iteration 1](https://github.com/user-attachments/assets/ac92b45d-dd68-4f3b-a961-d818c2171902) | Setup of the 3.3V Buck Converter | Most of the iterations only differed in the capacitor combinations, which was done before I had understood the true purpose of the capacitors.|
+| 1         | ![Iteration 1](https://github.com/user-attachments/assets/ac92b45d-dd68-4f3b-a961-d818c2171902) | Initial Setup of the AMS1117-3.3V LDO, with wide-band filtering from input and output | -|
+| 2         | ![Iteration 2](https://github.com/user-attachments/assets/46fff5e6-7ba9-45fc-9e57-730db8b55ea9) | Changed output 10 μF capacitor to 22  μF (based on datasheet) | -|
+
+# Voltage Clamp
+
+## What is Voltage Clamping?  
+According to (Electrical4U, 2021), clamping voltage is the maximum voltage permissible through a surge protector (i.e., a diode in our case). Any voltage above this maximum is limited, thereby protecting connected devices.
+
+---
+
+## Types of Diodes  
+
+### Comparison: Reverse-Biased Zener Diode vs TVS Diode  
+
+| Feature / Aspect                  | Reverse-Biased Zener Diode                        | TVS (Transient Voltage Suppression) Diode         |
+|----------------------------------|--------------------------------------------------|--------------------------------------------------|
+| **Purpose**                       | Voltage regulation / simple overvoltage protection | Designed specifically for surges and voltage spikes |
+| **Connection**                    | Across Vcc and GND (cathode to Vcc, anode to GND) | Across supply rails or input signals             |
+| **Normal Operation**              | Does nothing                                     | Does nothing                                     |
+| **Response to Voltage Spike**     | Conducts when voltage exceeds Zener rating        | Conducts extremely fast (nanoseconds) to high-voltage spikes |
+| **Voltage Selection**             | Zener voltage slightly above normal Vcc           | Clamping voltage chosen to protect sensitive components |
+| **Directionality**                | Typically unidirectional                          | Can be unidirectional or bidirectional           |
+| **Speed**                         | Slower response than TVS                          | Very fast response (ns range)                    |
+| **Use Case Notes**                | Simple overvoltage protection for power rails     | Protects circuits from fast transients and surges |
+
+---
+
+In this case, a **TVS diode** is chosen due to its superior performance against fast spikes caused by switching, ESD, or inductive loads. It is also the **common/conventional solution** when clamping voltages.
+
+---
+
+## TVS Diodes  
+According to (Toshiba, n.d.), TVS diodes are commonly connected between the signal line and GND of externally exposed terminals (e.g., USB). This is because harmful **Electrostatic Discharge (ESD)** — the sudden discharge of static electricity — may occur through these points.
+
+---
+
+**Image of circuitry and concept of voltage clamping:**  
+<img width="731" height="260" alt="image" src="https://github.com/user-attachments/assets/26bed114-b04d-4731-93d2-1a6131debdb7" />
+Source: (Toshiba, n.d.)
